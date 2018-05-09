@@ -1,0 +1,42 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Profile</title>
+    <script type="text/javascript" src="https://ipfs.io/ipfs/Qmf5o9Tnkm2hNWepdGz4nB3mjCqAFarirhh9YpSgh6XcyS/orbitdb.min.js" charset="utf-8"></script>
+    <script type="text/javascript" src="https://ipfs.io/ipfs/Qmf5o9Tnkm2hNWepdGz4nB3mjCqAFarirhh9YpSgh6XcyS/ipfs.js" charset="utf-8"></script>
+    <script type="text/javascript" src="js/common.js" charset="utf-8"></script>
+    <script type="text/javascript" src="js/account.js" charset="utf-8"></script>
+    <script type="text/javascript" src="js/view.js" defer></script>
+    <script type="text/javascript" src="js/main.js" charset="utf-8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script type="text/javascript" src="js/qrcode.min.js"></script>
+    <script type="text/javascript" src="https://github.com/schmich/instascan/releases/download/1.0.0/instascan.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/openpgp/3.0.9/openpgp.min.js"></script>
+  </head>
+    <div id=app>
+      <div v-if="ready">
+        Current Peer Id : {{account.orbitdb.id}} <br>
+        Currently Logged In: {{account.loggedin}}
+
+        <div id="login">
+            <input v-model="email" id="email" type="text" placeholder="Enter email of account"/>
+            <input  v-model="password" id="password" type="password" placeholder="Enter password for encryption/decryption"/>
+            <button v-on:click="createAccount" id="createAccount" type="button" >Create Account</button>
+            <button @click="login" id="lookupAccount" type="button" >Lookup Account</button>
+            <button @click="logout" id="logoutButton" type="button" >Logout</button>
+        </div>
+
+        <div id="qr">
+          <br>
+            <div id=qrcode v-html="qrCode"></div>
+            <br>
+            <button @click="createQRCode" id="QRbutton" type="button"> Create QRCode </button>
+        </div>
+      </div>
+      <div>
+          <button @click="scanQRCode" id="QRScanner" type="button">scan QRCode </button>
+          <video id="preview"></video>
+      </div>
+    </div>
+  </body>
+</html>
