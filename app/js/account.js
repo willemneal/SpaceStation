@@ -1,3 +1,53 @@
+
+class Database {
+    constructor(orbitdb_instance){
+      this.db = orbitdb_instance
+    }
+
+    get address(){
+      return this.db.address.toString()
+    }
+
+    async load(){
+      await this.db.load()
+    }
+
+    get events(){
+      return this.db.events
+    }
+}
+
+class EventLog extends Database{
+  add(item){
+    return this.db.add(item)
+  }
+
+  get(item){
+    return this.db.get(item).payload.value
+  }
+
+  last(n){
+    return this.db.iterator({ limit: 1 }).collect()
+                  .map((e) => e.payload.value)
+  }
+
+  peek(){
+    return this.last(1)[0]
+  }
+
+  get all() {
+    return this.last(-1)
+  }
+
+
+  destroy(){
+    this.db.drop()
+    this.db = null
+  }
+
+}
+
+
 class Path {
   static split(path){
     return path.split("/")
@@ -235,9 +285,8 @@ class Contact {
                         nonce:this.nonce}}
     this.tempDB.add(message)
   }
-
-
 }
+
 
 class Account {
     constructor(OrbitDB, ipfs){
@@ -406,28 +455,33 @@ class Account {
     async newContactCard() {
       if (this.tempDB)
         return
-      this.tempDB = await this.orbitdb.eventlog(randomNonce(8)+"",{create:true, overwrite:true, write:["*"]})
+      this.tempDB = new EventLog(await this.orbitdb.eventlog(randomNonce(8)+"",
+                                {create:true, overwrite:true, write:["*"]}))
       var nonce = randomNonce(8)
       var card = {nonce:nonce,
-                  dbAddr: this.tempDB.address.toString(),
+                  dbAddr: this.tempDB.address,
                   publicKey:this.publicKey,//this.key.pub,
                   peerID:this.id
       }
       var db = this.tempDB
       await db.load()
-      this.tempDB.events.on("replicate", function(){
-        db.load().then(function(){
-        var message = db.iterator().collect()[0]
-        if (message.msg.nonce === nonce){
-          addContact({peerID: message.id,
-                      publicKey: message.publicKey,
-                      channel: message.msg.channel})
-          db.drop()
+      this.tempDB.events.on("replicate", ()=>
+       {
+        db.load().then(()=>{
+          var message = db.peek()
+          if (message.msg.nonce === nonce){
+            this.addContact({peerID: message.peerID,
+                        publicKey: message.publicKey,
+                        channel: message.msg.channel})
+            db.destroy()
+          }
+          else{
+            console.log("NONCE IS NOT CORRECT")
+          }
         })
-        } else{
-          console.log("NONCE IS NOT CORRECT")
-        }
+       // })
       })
+
       return card
     }
 
