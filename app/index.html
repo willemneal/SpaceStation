@@ -42,13 +42,15 @@
           <h3>Contacts</h3>
 
           <div v-for="contact in contacts">
-            PeerID: {{contact.peerID}}
-            Public Key: {{contact.publicKey}}
+            PeerID: {{contact.peerID}}<br>
+            Public Key: {{contact.publicKey}}<br>
             Private Channel: {{contact.channelAddr}}
           </div>
       </div>
+      <br>
 
       <div id="petitions">
+        Posts
         <div v-for="post in posts">
           title - {{post.title}}
         </div>
