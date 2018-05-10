@@ -31,6 +31,7 @@ const createApp = function (account) {
   app = new Vue({
     el: '#app',
     data: {
+      petitions: [],
       account: account,
       email:"",
       password:"",
@@ -93,6 +94,7 @@ const createApp = function (account) {
       }
     }
 })
+app.petitions=[{title:"post 1", signatures:2},{title:"post 2", signatures:27}]
 }
 
 main()

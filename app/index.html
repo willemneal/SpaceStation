@@ -47,16 +47,20 @@
             Private Channel: {{contact.channelAddr}}
           </div>
       </div>
-      <br>
-
-      <div id="petitions">
-        Posts
-        <div v-for="post in posts">
-          title - {{post.title}}
-        </div>
-      </div>
-
-
+     
+        <div>
+	  <h3>Petitions</h3>
+	  <table border=1px>
+	    <tr>
+	      <th> "Title" </th>
+	      <th> "Signatures" </th>
+	    </tr>
+	    <tr v-for="post in petitions">
+	      <td> {{post.title}} </td>
+	      <td> {{post.signatures}} </td>
+	    </tr>
+	   </table>
+	 </div>	
     </div>
 
   </body>
