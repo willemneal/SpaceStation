@@ -36,10 +36,14 @@ const createApp = function (account) {
       email:"",
       password:"",
       qrCode:"",
-      readQRcode:""
+      readQRcode:"",
+      pwd: window.location.path
     }
     ,
     methods: {
+      hasContacts: function(){
+        return this.account && this.account.contacts && this.account.contacts.length > 0
+      },
       createAccount: function () {
         this.account.createAccount(this.email.toLowerCase(), this.password)
       },

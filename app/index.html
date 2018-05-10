@@ -1,4 +1,4 @@
-<html>
+<html manifest="app.mf">
   <head>
     <meta charset="utf-8">
     <title>Profile</title>
@@ -37,6 +37,11 @@
           <button @click="scanQRCode" id="QRScanner" type="button">scan QRCode </button>
           <video id="preview"></video>
       </div>
+      <div v-if="hasContacts">
+        <h3>Contacts</h3>
+        <div v-for="contact in account.contacts">
+          PeerID:{{contact.peerID}}, Private Channel: {{contact.channel}}
+        </div>
     </div>
   </body>
 </html>

@@ -1,0 +1,12 @@
+CACHE MANIFEST
+# 2010-06-18:v2
+
+# Explicitly cached 'master entries'.
+CACHE:
+css/*
+js/qrcode.min.js
+https://github.com/schmich/instascan/releases/download/1.0.0/instascan.min.js
+https://cdnjs.cloudflare.com/ajax/libs/openpgp/3.0.9/openpgp.min.js
+https://cdn.jsdelivr.net/npm/vue/dist/vue.js
+https://ipfs.io/ipfs/Qmf5o9Tnkm2hNWepdGz4nB3mjCqAFarirhh9YpSgh6XcyS/ipfs.js
+https://ipfs.io/ipfs/Qmf5o9Tnkm2hNWepdGz4nB3mjCqAFarirhh9YpSgh6XcyS/orbitdb.min.js

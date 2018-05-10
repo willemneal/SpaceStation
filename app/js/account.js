@@ -491,6 +491,8 @@ class Account {
 
     async addContact(info){
       this.contacts[info.peerID] = new Contact(this, info)
+      console.log("new contact")
+      console.log(this.contacts[info.peerID])
     }
 }
 
