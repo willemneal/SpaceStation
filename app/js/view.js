@@ -31,15 +31,20 @@ const createApp = function (account) {
   app = new Vue({
     el: '#app',
     data: {
-      account:null,
-      ready:false,
+      account: account,
       email:"",
       password:"",
       qrCode:"",
       readQRcode:"",
-      pwd: window.location.path
-    }
-    ,
+      pwd: window.location.pathname,
+      posts:[{title:"TITLE"}],
+      contacts: account.contacts
+    },
+    computed:{
+      ready: function (){
+        return null !== this.account
+      }
+    },
     methods: {
       hasContacts: function(){
         return this.account && this.account.contacts && this.account.contacts.length > 0
@@ -69,7 +74,6 @@ const createApp = function (account) {
               scanner.addListener('scan', function (content) {
                 alert(content);
                 account.addContact(JSON.parse(content))
-
               });
               Instascan.Camera.getCameras().then(function (cameras) {
                 if (cameras.length > 0) {
@@ -87,12 +91,8 @@ const createApp = function (account) {
               });
         })(this.account)
       }
-
     }
-
 })
-app.account = account
-app.ready = true
 }
 
 main()

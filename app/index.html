@@ -32,16 +32,30 @@
             <br>
             <button @click="createQRCode" id="QRbutton" type="button"> Create QRCode </button>
         </div>
-      </div>
+
       <div>
           <button @click="scanQRCode" id="QRScanner" type="button">scan QRCode </button>
           <video id="preview"></video>
       </div>
+
       <div v-if="hasContacts">
-        <h3>Contacts</h3>
-        <div v-for="contact in account.contacts">
-          PeerID:{{contact.peerID}}, Private Channel: {{contact.channel}}
+          <h3>Contacts</h3>
+
+          <div v-for="contact in contacts">
+            PeerID: {{contact.peerID}}
+            Public Key: {{contact.publicKey}}
+            Private Channel: {{contact.channelAddr}}
+          </div>
+      </div>
+
+      <div id="petitions">
+        <div v-for="post in posts">
+          title - {{post.title}}
         </div>
+      </div>
+
+
     </div>
+
   </body>
 </html>

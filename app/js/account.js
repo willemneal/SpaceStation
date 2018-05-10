@@ -232,6 +232,10 @@ class Channel {
     read("updating")
   }
 
+  get address(){
+    return this.database.address.toString()
+  }
+
 }
 
 class EncryptedChannel extends Channel{
@@ -266,17 +270,23 @@ class Contact {
           this.nonce = info.nonce
           this.sendFirstMessage(account,info.dbAddr)
     }
-    if (info.msg){
-      this.channel = new EncryptedChannel(info.channel,
+    if (info.channel){
+      this.channelAddr = info.channel;
+      (async () => {
+      var privDatabase = await account.orbitdb.feed(info.channel, {create:true, write:[this.peerID,account.id]})
+      await privDatabase.load()
+      this.channel = new EncryptedChannel(privDatabase,
                                           account.keys,
                                           this.publicKey)
+      })()
     }
   }
 
   async sendFirstMessage(account,dbAddr){
     this.tempDB =  await account.orbitdb.log(dbAddr,{sync:true,create:true})
     await this.tempDB.load()
-    var privDatabase = await account.orbitdb.feed(this.peerID +"X"+account.id, {create:true, write:[this.peerID,account.id]})
+    this.channelAddr = this.peerID +"X"+account.id
+    var privDatabase = await account.orbitdb.feed(this.channelAddr, {create:true, write:[this.peerID,account.id]})
     this.channel = new EncryptedChannel(privDatabase,account.keys,this.publicKey)
     var message = {peerID:account.id,
                         publicKey:account.publicKey,
@@ -297,7 +307,8 @@ class Account {
         this.options = {}
         this.init(ipfs)
         this.createAccountDB()
-        this.contacts = {}
+        this.contacts = []
+        this.contactsMap = new Map()
 
     }
 
@@ -490,9 +501,11 @@ class Account {
     }//TODO Move callback here
 
     async addContact(info){
-      this.contacts[info.peerID] = new Contact(this, info)
+      var newContact = new Contact(this, info)
+      this.contacts.push(newContact)
+      this.contactsMap.set(info.peerID, newContact)
       console.log("new contact")
-      console.log(this.contacts[info.peerID])
+      console.log(newContact)
     }
 }
 
