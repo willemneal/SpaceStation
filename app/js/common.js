@@ -161,3 +161,28 @@ function convert(Uint8Arr) {
 function randomNonce(size){
   return convert(crypto.getRandomValues(new Uint8Array(size)))
 }
+
+function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+
+var serializeObject = function(obj) {
+    var pairs = [];
+    for (var prop in obj) {
+        if (!obj.hasOwnProperty(prop)) {
+            continue;
+        }
+        if (Object.prototype.toString.call(obj[prop]) == '[object Object]') {
+            pairs.push(serialiseObject(obj[prop]));
+            continue;
+        }
+        pairs.push(prop + '=' + obj[prop]);
+    }
+    return pairs.join('&');
+}

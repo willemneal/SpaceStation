@@ -96,14 +96,15 @@ class FileSystem {
       if (!profile) {
         this.mkdir("/profile")
       }
-      this.mkdir("/contacts")
+      this.mkdir("/contacts", {printWarning:false})
+      this.mkdir("/posts", {printWarning:false})
     }
 
-    async mkdir(path, writers = []){
+    async mkdir(path, writers = [], printWarning=true){
       var parent = Path.dirname(path)
       var basename = Path.basename(path)
       var parentDoc = await this.root.get(parent)
-      if (!parentDoc){
+      if (!parentDoc && printWarning){
         console.log("Parent directory does not exist")
         return null
       }
@@ -159,11 +160,25 @@ class FileSystem {
     async touch(path){
       var basename = Path.basename(path)
       var dirDB =  await this.getDir(Path.dirname(path))
+      await dirDB.load()
       var file = await dirDB.get(basename)
       if (file){
         return
       }
       dirDB.put(basename,{name:basename,directory:false,content:null})
+    }
+
+    async getParentDir(path){
+      return this.getDir(Path.dirname(path))
+    }
+
+    async writeFile(path, data){
+      await this.touch(path)
+      var basename = Path.basename(path)
+      var parentDir = await this.getParentDir(path)
+      await parentDir.load()
+      parentDir.put(basename,{name:basename,directory:false, content:data})
+
     }
 
 }
@@ -285,7 +300,7 @@ class Contact {
   async sendFirstMessage(account,dbAddr){
     this.tempDB =  await account.orbitdb.log(dbAddr,{sync:true,create:true})
     await this.tempDB.load()
-    this.channelAddr = this.peerID +"X"+account.id
+    this.channelAddr = Contact.getChannelAddress(account.id,this.peerID)
     var privDatabase = await account.orbitdb.feed(this.channelAddr, {create:true, write:[this.peerID,account.id]})
     this.channel = new EncryptedChannel(privDatabase,account.keys,this.publicKey)
     var message = {peerID:account.id,
@@ -294,6 +309,17 @@ class Contact {
                         {channel: privDatabase.address.toString(),
                         nonce:this.nonce}}
     this.tempDB.add(message)
+  }
+
+  static getChannelAddress(myID, otherID){
+    if (myID>otherID){
+      return myID +"X"+otherID
+    }
+    return otherID +"X"+myID
+  }
+  static async fromInfo(account, info){
+    info.channel = Contact.getChannelAddress(account.id, info.peerID)
+    return new Contact(account,info)
   }
 }
 
@@ -337,7 +363,12 @@ class Account {
     }
 
     async createAccountDB() {
-      this.db = await this.orbitdb.open(this.accountDBName, { sync: true, write:["*"]})
+      this.db = await this.orbitdb.open(this.accountDBName, { sync: true})
+      this.db.events.on('load', (dbname) => console.log("loading "+dbname))
+      this.db.events.on('replicate.progress', (address, hash, entry, progress, have)=>
+      {
+        console.log(address +" "+hash+" "+entry+" "+progress+" "+ have)
+      })
       await this.db.load()
       // this.worker = new Worker("js/actor.js")
       // this.worker.postMessage("In worker" + this.db.address.toString())
@@ -450,8 +481,18 @@ class Account {
         this.saveAccount()
         console.log(this.loggedin ? "logged in!": "login Failed :-(")
       }
+      await this.initFS()
+    }
+
+    async initFS(){
       this.fs = new FileSystem(this.orbitdb)
       await this.fs.init()
+      var contactsDB = await this.fs.getDir("/contacts")
+      for (var contact in contactsDB.all){
+        var newContact = await Contact.fromInfo(this, contactsDB.all[contact].content)
+        this.contacts.push(newContact)
+        this.contactsMap.set(contact.peerID, newContact)
+      }
     }
 
     logout(){
@@ -500,18 +541,51 @@ class Account {
     }//TODO Move callback here
 
     async addContact(info){
+      if (this.contactsMap.has(info.peerID)){
+        console.log("Already contact")
+      }
       var newContact = new Contact(this, info)
       this.contacts.push(newContact)
       this.contactsMap.set(info.peerID, newContact)
+      this.addToContactsDB(info)
       console.log("new contact")
       console.log(newContact)
     }
+    async addToContactsDB(info){
+      return this.fs.writeFile("/contacts/"+info.peerID, info)
+    }
+
 
     static async create(OrbitDB, ipfs){
       var account = new Account(OrbitDB)
       account.init(ipfs)
       return account
     }
+
+    addContactFromURL(){
+        var card = {
+          nonce:parseInt(getParameterByName("nonce")),
+          dbAddr:getParameterByName("dbAddr"),
+          publicKey:getParameterByName("publicKey"),
+          peerID:getParameterByName("peerID")
+        }
+        this.addContact(card)
+    }
+
+    async makePost(title,content){
+      var postsDB = await this.fs.getDir("/posts")
+      await postsDB.load()
+      postsDB.put(title,content)
+    }
+
+    async getPosts(peerID){
+      var parentDB = await this.orbitdb.keyvalue("/posts",{writers:[],sync:true})
+      await parentDB.load()
+      return parentDB.all
+
+    }
+
+
 }
 
 

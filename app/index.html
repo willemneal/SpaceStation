@@ -27,7 +27,7 @@
             <input v-model="email" id="email" type="text" placeholder="Enter email of account"/>
             <input  v-model="password" id="password" type="password" placeholder="Enter password for encryption/decryption"/>
             <button v-on:click="createAccount" id="createAccount" type="button" >Create Account</button>
-            <button @click="login" id="lookupAccount" type="button" >Lookup Account</button>
+            <button @click="login" id="lookupAccount" type="button" >Login in</button>
         </div>
         <div id="logout" v-if="loggedin">
             <button @click="logout" id="logoutButton" type="button" >Logout</button>
@@ -44,7 +44,10 @@
           <button @click="scanQRCode" id="QRScanner" type="button">scan QRCode </button>
           <video id="preview"></video>
       </div>
-
+      <div>
+          <button @click="createContactLink" id="getInviteLink" type="button">get Invite Link </button><br>
+          <div v-if="hasContactLink">{{link}}</div>
+      </div>
       <div v-if="hasContacts">
           <h3>Contacts</h3>
 

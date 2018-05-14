@@ -28,6 +28,7 @@ var app = null
 
 
 const createApp = function (account) {
+
   app = new Vue({
     el: '#app',
     data: {
@@ -37,11 +38,12 @@ const createApp = function (account) {
       password:"",
       qrCode:"",
       readQRcode:"",
-      pwd: window.location.pathname,
+      arguments: window.location.search,
       posts:[{title:"TITLE"}],
       contacts: account.contacts,
       postName:"",
-      message:""
+      message:"",
+      link:""
     },
     computed:{
       ready: function (){
@@ -49,6 +51,16 @@ const createApp = function (account) {
       },
       loggedin: function(){
         return this.account.loggedin
+      },
+      hasContactLink: function(){
+        return this.link !==""
+      }
+    },
+    watch:{
+      arguments: function(oldArgs, newArgs){
+        if(this.loggedin && arguments.length > 0){
+          this.account.addContactFromURL()
+        }
       }
     },
     methods: {
@@ -73,6 +85,10 @@ const createApp = function (account) {
       },
       logout: function(){
         window.localStorage.removeItem("account")
+      },
+      createContactLink:async function(){
+        var card = await this.account.newContactCard()
+        this.link = serializeObject(card)
       },
       createQRCode : async function() {
         var qrcode = new QRCode(document.getElementById("qrcode"), {
