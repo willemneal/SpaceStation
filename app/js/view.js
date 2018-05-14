@@ -32,18 +32,18 @@ const createApp = function (account) {
   app = new Vue({
     el: '#app',
     data: {
-      petitions: [{title:"Net Neutrality", content:"Support if you like a free and open internet.", signatures:2},{title:"Raise Minimum Wage", content:"Support workers", signatures:27}],
       account: account,
       email:"",
+      clipboard: new ClipboardJS('.btn'),
       password:"",
       qrCode:"",
       readQRcode:"",
       arguments: window.location.search,
-      posts:[{title:"TITLE"}],
       contacts: account.contacts,
       postName:"",
+      petitions: account.posts,
       message:"",
-      link:""
+      inviteLink:""
     },
     computed:{
       ready: function (){
@@ -53,8 +53,12 @@ const createApp = function (account) {
         return this.account.loggedin
       },
       hasContactLink: function(){
-        return this.link !==""
-      }
+        return this.inviteLink !==""
+      },
+      // petitions: function(){
+      //   if (this.loggedin)
+      //   return this.account.posts
+      // }
     },
     watch:{
       arguments: function(oldArgs, newArgs){
@@ -68,8 +72,13 @@ const createApp = function (account) {
         // Populate hidden form on submit
 
         // this.posts.push(about.value)
+        var post = {title:this.postName,
+                    content:this.message,
+                    signatures:0}
+        this.account.makePost(this.postName,post)
+        // this.posts.push(post)
 
-        console.log(this.message);
+        console.log(post);
 
         // No back end to actually submit to!
         return false;
@@ -88,7 +97,7 @@ const createApp = function (account) {
       },
       createContactLink:async function(){
         var card = await this.account.newContactCard()
-        this.link = serializeObject(card)
+        this.inviteLink = "https://pldev2.cs.umd.edu/app?"+ serializeObject(card)
       },
       createQRCode : async function() {
         var qrcode = new QRCode(document.getElementById("qrcode"), {

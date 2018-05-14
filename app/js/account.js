@@ -19,7 +19,7 @@ class Database {
 
 class EventLog extends Database{
   add(item){
-    return this.db.add(item)
+    this.db.add(item)
   }
 
   get(item){
@@ -333,11 +333,11 @@ class Account {
         this.options = {}
         this.contacts = []
         this.contactsMap = new Map()
-
+        this.posts = []
     }
 
     async init(ipfs){
-        if (this.loggedin){
+        if (this.fromStorage()){
            this.options = {peerId:this.fromStorage()}
         }
         this.orbitdb = new OrbitDB(ipfs, this.DBdirectory, this.options)
@@ -482,6 +482,7 @@ class Account {
         console.log(this.loggedin ? "logged in!": "login Failed :-(")
       }
       await this.initFS()
+      this.addContactFromURL()
     }
 
     async initFS(){
@@ -493,6 +494,7 @@ class Account {
         this.contacts.push(newContact)
         this.contactsMap.set(contact.peerID, newContact)
       }
+      this.posts.push(...await this.getPosts(this.id))
     }
 
     logout(){
@@ -505,7 +507,7 @@ class Account {
 
     async newContactCard() {
       if (this.tempDB)
-        return
+        return this.card
       this.tempDB = new EventLog(await this.orbitdb.eventlog(randomNonce(8)+"",
                                 {create:true, overwrite:true, write:["*"]}))
       var nonce = randomNonce(8)
@@ -514,6 +516,7 @@ class Account {
                   publicKey:this.publicKey,//this.key.pub,
                   peerID:this.id
       }
+      self.card = card
       var db = this.tempDB
       await db.load()
       this.tempDB.events.on("replicate", ()=>
@@ -525,6 +528,8 @@ class Account {
                         publicKey: message.publicKey,
                         channel: message.msg.channel})
             db.destroy()
+            this.tempDB = null
+            this.card = null
           }
           else{
             console.log("NONCE IS NOT CORRECT")
@@ -563,19 +568,40 @@ class Account {
     }
 
     addContactFromURL(){
-        var card = {
+      if (window.location.search.length > 0){
+      var card=null
+      try {
+        card = {
           nonce:parseInt(getParameterByName("nonce")),
           dbAddr:getParameterByName("dbAddr"),
           publicKey:getParameterByName("publicKey"),
-          peerID:getParameterByName("peerID")
+          peerID:getParameterByName("peerID"),
+          channel:Contact.getChannelAddress(getParameterByName("peerID"),this.id)
         }
+      }catch(e){
+        return
+      }
+      if (card === null){
+        return
+      }
+      Object.keys(card).forEach(function(key,index) {
+        if (card[key]===null){
+          return
+        }
+        // key: the name of the object key
+        // index: the ordinal position of the key within the object
+
+        });
+
         this.addContact(card)
+      }
     }
 
-    async makePost(title,content){
+    async makePost(title, post){
       var postsDB = await this.fs.getDir("/posts")
       await postsDB.load()
-      postsDB.put(title,content)
+      postsDB.put(title, post)
+      this.posts.push(post)
     }
 
     async getPosts(peerID){

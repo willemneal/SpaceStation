@@ -15,7 +15,7 @@
     <script type="text/javascript" src="js/qrcode.min.js"></script>
     <script type="text/javascript" src="https://github.com/schmich/instascan/releases/download/1.0.0/instascan.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/openpgp/3.0.9/openpgp.min.js"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
 
   </head>
     <div id=app>
@@ -46,7 +46,9 @@
       </div>
       <div>
           <button @click="createContactLink" id="getInviteLink" type="button">get Invite Link </button><br>
-          <div v-if="hasContactLink">{{link}}</div>
+          <div v-if="hasContactLink"><button class="btn" :data-clipboard-text="inviteLink">
+    Copy Invite Link To clipboard
+</button></div>
       </div>
       <div v-if="hasContacts">
           <h3>Contacts</h3>
@@ -68,7 +70,7 @@
       <div class="col-xs-8">
         <div class="form-group">
           <label for="display_name">Petition Name</label>
-          <input class="form-control" name="display_name" type="text" v-bind=postName>
+          <input class="form-control" name="display_name" type="text" v-model=postName>
         </div>
       </div>
     </div>
