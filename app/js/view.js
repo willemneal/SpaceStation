@@ -26,6 +26,11 @@
 // })
 var app = null
 
+Vue.component("petitions",{
+  props: ["name","petitions"],
+  template: window.document.getElementById("petitionsTemplate")
+})
+
 
 const createApp = function (account) {
 

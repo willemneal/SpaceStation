@@ -18,6 +18,25 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
 
   </head>
+  <template id=petitionTemplate>
+    <div>
+    	  <h3>{{name}}'s Petitions</h3>
+    	  <table border=1px>
+    	    <tr>
+    	      <th> "Title" </th>
+            <th> "Body" </th>
+            <th> "Signatures" </th>
+    	    </tr>
+    	    <tr v-for="post in petitions">
+    	      <td> {{post.title}} </td>
+            <td> {{post.content}}
+    	      <td> {{post.signatures}} </td>
+    	    </tr>
+    	   </table>
+    	 </div>
+  </template>
+
+
     <div id=app>
       <div v-if="ready">
         Current Peer Id : {{account.orbitdb.id}} <br>
@@ -57,9 +76,25 @@
             PeerID: {{contact.peerID}}<br>
             Public Key: {{contact.publicKey}}<br>
             Private Channel: {{contact.channelAddr}}
+            <div>
+              	  <h3>{{contact.peerID}}'s Petitions</h3>
+              	  <table border=1px>
+              	    <tr>
+              	      <th> "Title" </th>
+                      <th> "Body" </th>
+                      <th> "Signatures" </th>
+              	    </tr>
+              	    <tr v-for="post in contact.petitions">
+              	      <td> {{post.title}} </td>
+                      <td> {{post.content}}
+              	      <td> {{post.signatures}} </td>
+              	    </tr>
+              	   </table>
+              	 </div>
+                 <br>
           </div>
       </div>
-
+<br>
         <div>
           <div id="form-container" class="container">
   <form v-on:submit.prevent>
@@ -84,11 +119,14 @@
     </div>
   </form>
 </div>
+<br>
+<div>
 	  <h3>Petitions</h3>
 	  <table border=1px>
 	    <tr>
 	      <th> "Title" </th>
-	      <th> "Signatures" </th>
+        <th> "Body" </th>
+        <th> "Signatures" </th>
 	    </tr>
 	    <tr v-for="post in petitions">
 	      <td> {{post.title}} </td>

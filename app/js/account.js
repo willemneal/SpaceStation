@@ -262,7 +262,7 @@ class EncryptedChannel extends Channel{
 
   }
   read(res){
-    this.messages = database.iterator({limit:this.limit}).collect()
+    this.messages = this.database.iterator({limit:this.limit}).collect()
   }
 
   async write(message){
@@ -288,20 +288,26 @@ class Contact {
     if (info.channel){
       this.channelAddr = info.channel;
       (async () => {
-      var privDatabase = await account.orbitdb.feed(info.channel, {create:true, write:[this.peerID,account.id]})
+      var privDatabase = await account.orbitdb.feed(info.channel, {create:true, write:[this.publicKey,account.publicKey]})
       await privDatabase.load()
       this.channel = new EncryptedChannel(privDatabase,
                                           account.keys,
                                           this.publicKey)
       })()
     }
+    this.createPostsDatabase(account.orbitdb)
+  }
+
+  async createPostsDatabase(orbitdb){
+    this.postsDB = await orbitdb.keyvalue("/posts",{write:[this.publicKey],sync:true})
+    await this.postsDB.load()
   }
 
   async sendFirstMessage(account,dbAddr){
     this.tempDB =  await account.orbitdb.log(dbAddr,{sync:true,create:true})
     await this.tempDB.load()
     this.channelAddr = Contact.getChannelAddress(account.id,this.peerID)
-    var privDatabase = await account.orbitdb.feed(this.channelAddr, {create:true, write:[this.peerID,account.id]})
+    var privDatabase = await account.orbitdb.feed(this.channelAddr, {create:true, write:[this.publicKey,account.publicKey]})
     this.channel = new EncryptedChannel(privDatabase,account.keys,this.publicKey)
     var message = {peerID:account.id,
                         publicKey:account.publicKey,
@@ -320,6 +326,14 @@ class Contact {
   static async fromInfo(account, info){
     info.channel = Contact.getChannelAddress(account.id, info.peerID)
     return new Contact(account,info)
+  }
+
+  get petitions(){
+    if (this.postsDB)
+    return this.postsDB.all
+    else {
+      return []
+    }
   }
 }
 
@@ -482,6 +496,8 @@ class Account {
         console.log(this.loggedin ? "logged in!": "login Failed :-(")
       }
       await this.initFS()
+      this.postsDB = await this.fs.getDir("/posts")
+      await this.postsDB.load()
       this.addContactFromURL()
     }
 
@@ -598,14 +614,12 @@ class Account {
     }
 
     async makePost(title, post){
-      var postsDB = await this.fs.getDir("/posts")
-      await postsDB.load()
-      postsDB.put(title, post)
+      this.postsDB.put(title, post)
       this.posts.push(post)
     }
 
     async getPosts(peerID){
-      var parentDB = await this.orbitdb.keyvalue("/posts",{writers:[],sync:true})
+      var parentDB = await this.orbitdb.keyvalue("/posts",{writers:[peerID],sync:true})
       await parentDB.load()
       return parentDB.all
 
