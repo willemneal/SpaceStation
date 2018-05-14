@@ -42,10 +42,12 @@ const main = (IPFS, ORBITDB) => {
 
   ipfs.on('error', (e) => handleError(e))
   ipfs.on('ready', () => {
-    console.log(ipfs._peerInfo.id._idB58String)
-    var account = new Account(OrbitDB, ipfs)
-    console.log("public key: " + account.orbitdb.key.getPublic('hex'))
-    createApp(account)
+    (async () =>{
+      console.log(ipfs._peerInfo.id._idB58String)
+      var account = await Account.create(OrbitDB, ipfs)
+      console.log("public key: " + account.orbitdb.key.getPublic('hex'))
+      createApp(account)
+    })()
   })
 }
 

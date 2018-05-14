@@ -3,7 +3,7 @@ CACHE MANIFEST
 
 # Explicitly cached 'master entries'.
 CACHE:
-css/*
+
 js/qrcode.min.js
 https://github.com/schmich/instascan/releases/download/1.0.0/instascan.min.js
 https://cdnjs.cloudflare.com/ajax/libs/openpgp/3.0.9/openpgp.min.js

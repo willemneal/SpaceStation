@@ -1,28 +1,35 @@
-<html manifest="app.mf">
+<html>
   <head>
     <meta charset="utf-8">
     <title>Profile</title>
+    <!-- <link href="https://cdn.quilljs.com/1.0.0/quill.snow.css" rel="stylesheet"> -->
+    <!-- <script src="https://cdn.quilljs.com/1.0.0/quill.min.js"></script> -->
     <script type="text/javascript" src="https://ipfs.io/ipfs/Qmf5o9Tnkm2hNWepdGz4nB3mjCqAFarirhh9YpSgh6XcyS/orbitdb.min.js" charset="utf-8"></script>
     <script type="text/javascript" src="https://ipfs.io/ipfs/Qmf5o9Tnkm2hNWepdGz4nB3mjCqAFarirhh9YpSgh6XcyS/ipfs.js" charset="utf-8"></script>
     <script type="text/javascript" src="js/common.js" charset="utf-8"></script>
     <script type="text/javascript" src="js/account.js" charset="utf-8"></script>
+    <!-- <script src="js/quill.js"></script> -->
     <script type="text/javascript" src="js/view.js" defer></script>
     <script type="text/javascript" src="js/main.js" charset="utf-8"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script type="text/javascript" src="js/qrcode.min.js"></script>
     <script type="text/javascript" src="https://github.com/schmich/instascan/releases/download/1.0.0/instascan.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/openpgp/3.0.9/openpgp.min.js"></script>
+
+
   </head>
     <div id=app>
       <div v-if="ready">
         Current Peer Id : {{account.orbitdb.id}} <br>
         Currently Logged In: {{account.loggedin}}
 
-        <div id="login">
+        <div v-if="!loggedin" id="login">
             <input v-model="email" id="email" type="text" placeholder="Enter email of account"/>
             <input  v-model="password" id="password" type="password" placeholder="Enter password for encryption/decryption"/>
             <button v-on:click="createAccount" id="createAccount" type="button" >Create Account</button>
             <button @click="login" id="lookupAccount" type="button" >Lookup Account</button>
+        </div>
+        <div id="logout" v-if="loggedin">
             <button @click="logout" id="logoutButton" type="button" >Logout</button>
         </div>
 
@@ -47,8 +54,31 @@
             Private Channel: {{contact.channelAddr}}
           </div>
       </div>
-     
+
         <div>
+          <div id="form-container" class="container">
+  <form v-on:submit.prevent>
+    <div class="row">
+      <div class="col-xs-4">
+
+      </div>
+      <div class="col-xs-8">
+        <div class="form-group">
+          <label for="display_name">Petition Name</label>
+          <input class="form-control" name="display_name" type="text" v-bind=postName>
+        </div>
+      </div>
+    </div>
+    <div class="row form-group">
+      <label for="about">About Petition</label>
+      <textarea v-model="message" placeholder=""></textarea>
+      </div>
+    </div>
+    <div class="row">
+      <button class="btn btn-primary" type="submit" @click=submitPost>Submit Petition</button>
+    </div>
+  </form>
+</div>
 	  <h3>Petitions</h3>
 	  <table border=1px>
 	    <tr>
@@ -57,10 +87,11 @@
 	    </tr>
 	    <tr v-for="post in petitions">
 	      <td> {{post.title}} </td>
+        <td> {{post.content}}
 	      <td> {{post.signatures}} </td>
 	    </tr>
 	   </table>
-	 </div>	
+	 </div>
     </div>
 
   </body>

@@ -299,20 +299,18 @@ class Contact {
 
 
 class Account {
-    constructor(OrbitDB, ipfs){
+    constructor(OrbitDB){
         this.storage = window.localStorage
         this.OrbitDB = OrbitDB // constructor
         this.accountDBName = "/orbitdb/QmWfN1JwLknbVfCZ3tZ6aZC9PHbbK2cX7RtZnzukKgUfMX/Accounts!"
         this.DBdirectory = "./orbitdb"
         this.options = {}
-        this.init(ipfs)
-        this.createAccountDB()
         this.contacts = []
         this.contactsMap = new Map()
 
     }
 
-    init(ipfs){
+    async init(ipfs){
         if (this.loggedin){
            this.options = {peerId:this.fromStorage()}
         }
@@ -320,6 +318,7 @@ class Account {
         if (this.loggedin){
           this.login("","")
         }
+        await this.createAccountDB()
 
     }
 
@@ -338,10 +337,10 @@ class Account {
     }
 
     async createAccountDB() {
-      this.db = await this.orbitdb.open(this.accountDBName, { sync: true })
+      this.db = await this.orbitdb.open(this.accountDBName, { sync: true, write:["*"]})
       await this.db.load()
-      this.worker = new Worker("js/actor.js")
-      this.worker.postMessage("In worker" + this.db.address.toString())
+      // this.worker = new Worker("js/actor.js")
+      // this.worker.postMessage("In worker" + this.db.address.toString())
       console.log("accountDB loaded "+ this.db.address.toString())
     }
 
@@ -506,6 +505,12 @@ class Account {
       this.contactsMap.set(info.peerID, newContact)
       console.log("new contact")
       console.log(newContact)
+    }
+
+    static async create(OrbitDB, ipfs){
+      var account = new Account(OrbitDB)
+      account.init(ipfs)
+      return account
     }
 }
 

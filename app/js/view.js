@@ -31,7 +31,7 @@ const createApp = function (account) {
   app = new Vue({
     el: '#app',
     data: {
-      petitions: [],
+      petitions: [{title:"Net Neutrality", content:"Support if you like a free and open internet.", signatures:2},{title:"Raise Minimum Wage", content:"Support workers", signatures:27}],
       account: account,
       email:"",
       password:"",
@@ -39,14 +39,29 @@ const createApp = function (account) {
       readQRcode:"",
       pwd: window.location.pathname,
       posts:[{title:"TITLE"}],
-      contacts: account.contacts
+      contacts: account.contacts,
+      postName:"",
+      message:""
     },
     computed:{
       ready: function (){
         return null !== this.account
+      },
+      loggedin: function(){
+        return this.account.loggedin
       }
     },
     methods: {
+      submitPost: function() {
+        // Populate hidden form on submit
+
+        // this.posts.push(about.value)
+
+        console.log(this.message);
+
+        // No back end to actually submit to!
+        return false;
+      },
       hasContacts: function(){
         return this.account && this.account.contacts && this.account.contacts.length > 0
       },
@@ -94,7 +109,6 @@ const createApp = function (account) {
       }
     }
 })
-app.petitions=[{title:"post 1", signatures:2},{title:"post 2", signatures:27}]
 }
 
 main()
