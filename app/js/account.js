@@ -39,7 +39,6 @@ class EventLog extends Database{
     return this.last(-1)
   }
 
-
   destroy(){
     this.db.drop()
     this.db = null
@@ -299,42 +298,41 @@ class Contact {
 
 
 class Account {
-    constructor(OrbitDB, ipfs){
-        this.storage = window.localStorage
+    constructor(OrbitDB, ipfs, storage){
+        this.storage = storage
         this.OrbitDB = OrbitDB // constructor
         this.accountDBName = "/orbitdb/QmWfN1JwLknbVfCZ3tZ6aZC9PHbbK2cX7RtZnzukKgUfMX/Accounts!"
         this.DBdirectory = "./orbitdb"
         this.options = {}
         this.init(ipfs)
-        this.createAccountDB()
+
         this.contacts = []
         this.contactsMap = new Map()
-
     }
 
-    init(ipfs){
-        if (this.loggedin){
+    async init(ipfs){
+        if (await this.loggedin){
            this.options = {peerId:this.fromStorage()}
         }
         this.orbitdb = new OrbitDB(ipfs, this.DBdirectory, this.options)
-        if (this.loggedin){
+        this.createAccountDB()
+        if (await this.loggedin){
           this.login("","")
         }
 
     }
 
+
     get loggedin() {
-      return !(null === this.storage.getItem("account")) &&
-             this.orbitdb &&
-             this.orbitdb.id === this.storage.getItem("account")
+      return this.storage.hasAccount()
     }
 
-    saveAccount(){
-      this.storage.setItem("account", this.orbitdb.id)
+    async saveAccount(){
+      this.storage.addAccount(this.orbitdb.id)
     }
 
-    fromStorage(){
-      return this.storage.getItem("account")
+    async fromStorage(){
+      return this.storage.getAccount()
     }
 
     async createAccountDB() {
@@ -347,7 +345,7 @@ class Account {
 
 
     async createAccount(email, password) {
-      if (this.loggedin){
+      if (await this.loggedin){
         console.log("already signed in")
         return
       }
@@ -436,7 +434,7 @@ class Account {
     }
 
     async login(email, password){
-      if (this.loggedin){
+      if (await this.loggedin){
         console.log("already logged in")
       }else{
         var oldId = this.orbitdb.id
@@ -448,15 +446,15 @@ class Account {
         this.orbitdb.keystore._storage[this.orbitdb.id] = options["keystore"][this.orbitdb.id]
         this.orbitdb = new OrbitDB(this.orbitdb._ipfs,this.orbitdb.directory, {peerId: this.orbitdb.id, keystore:this.orbitdb.keystore})
         console.log("old id "+ oldId + " new id: " + options.peerId)
-        this.saveAccount()
-        console.log(this.loggedin ? "logged in!": "login Failed :-(")
+        await this.saveAccount()
+        console.log(await this.loggedin ? "logged in!": "login Failed :-(")
       }
       this.fs = new FileSystem(this.orbitdb)
       await this.fs.init()
     }
 
     logout(){
-      this.storage.removeItem("account")
+      this.storage.removeAccount("account")
     }
 
     connectedPeers() {
@@ -506,6 +504,32 @@ class Account {
       this.contactsMap.set(info.peerID, newContact)
       console.log("new contact")
       console.log(newContact)
+    }
+
+    static async create(OrbitDB, ipfs){
+
+      var db = new Dexie("account_database");
+          db.version(1).stores({
+              account: 'name,peerID'
+          });
+      var storage = {
+        addAccount:async function(peerID){
+          return db.account.put({name:"account", peerID:peerID})
+        },
+        hasAccount: async function(){
+          return db.account.count()>0
+        },
+        removeAccount:function(){
+          db.account.clear()
+        },
+        getAccount:async function(){
+          var account = await db.account.get("account")
+          return account.peerID
+        }
+      }
+      return new Account(OrbitDB,ipfs,storage)
+
+
     }
 }
 

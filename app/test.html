@@ -1,0 +1,13 @@
+<html manifest="app.mf">
+  <head>
+    <meta charset="utf-8">
+    <title>Testing Web Workers and Components</title>
+    <!-- <script src="js/server"></script> -->
+    <script>
+    var myWorker = new Worker("js/server.js");
+    myWorker.postMessage("hello!")
+    </script>
+
+  </head>
+
+</html>
