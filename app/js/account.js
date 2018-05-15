@@ -92,10 +92,7 @@ class FileSystem {
                       database: newDirDB.address.toString()}
                     )
       }
-      var profile = await this.getDirDoc("/profile")
-      if (!profile) {
-        this.mkdir("/profile")
-      }
+      this.mkdir("/profile",{printWarning:false})
       this.mkdir("/contacts", {printWarning:false})
       this.mkdir("/posts", {printWarning:false})
     }
@@ -109,7 +106,7 @@ class FileSystem {
         return null
       }
       var pathDoc = await this.root.get(path)
-      if (pathDoc){
+      if (pathDoc && printWarning){
         console.log("Directory already exists")
         return null
       }
