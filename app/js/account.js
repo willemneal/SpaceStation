@@ -92,9 +92,9 @@ class FileSystem {
                       database: newDirDB.address.toString()}
                     )
       }
-      this.mkdir("/profile",{printWarning:false})
-      this.mkdir("/contacts", {printWarning:false})
-      this.mkdir("/posts", {printWarning:false})
+      await this.mkdir("/profile",{printWarning:false})
+      await this.mkdir("/contacts", {printWarning:false})
+      await this.mkdir("/posts", {printWarning:false})
     }
 
     async mkdir(path, writers = [], printWarning=true){
