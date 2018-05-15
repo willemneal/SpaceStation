@@ -281,6 +281,7 @@ class Contact {
   constructor(account, info){
     this.publicKey = info.publicKey
     this.peerID = info.peerID
+    this.petitions  = []
     if (info.nonce){
           this.nonce = info.nonce
           this.sendFirstMessage(account,info.dbAddr)
@@ -300,7 +301,11 @@ class Contact {
 
   async createPostsDatabase(orbitdb){
     this.postsDB = await orbitdb.keyvalue("/posts",{write:[this.publicKey],sync:true})
+    this.postsDB.events.on("replicated",()=>
+    this.petitions.push(...this.postsDB.all)
+    )
     await this.postsDB.load()
+
   }
 
   async sendFirstMessage(account,dbAddr){
@@ -328,13 +333,6 @@ class Contact {
     return new Contact(account,info)
   }
 
-  get petitions(){
-    if (this.postsDB)
-    return this.postsDB.all
-    else {
-      return []
-    }
-  }
 }
 
 
@@ -496,9 +494,7 @@ class Account {
         console.log(this.loggedin ? "logged in!": "login Failed :-(")
       }
       await this.initFS()
-      this.postsDB = await this.fs.getDir("/posts")
-      await this.postsDB.load()
-      this.addContactFromURL()
+
     }
 
     async initFS(){
@@ -511,6 +507,9 @@ class Account {
         this.contactsMap.set(contact.peerID, newContact)
       }
       this.posts.push(...await this.getPosts(this.id))
+      this.postsDB = await this.fs.getDir("/posts")
+      await this.postsDB.load()
+      this.addContactFromURL()
     }
 
     logout(){
