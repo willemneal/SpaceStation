@@ -122,20 +122,22 @@
 </div>
 <br>
 <div>
-	  <h3>Petitions</h3>
-	  <table border=1px>
-	    <tr>
-	      <th> "Title" </th>
-        <th> "Body" </th>
-        <th> "Signatures" </th>
-	    </tr>
-	    <tr v-for="post in petitions">
-	      <td> {{post.title}} </td>
-        <td> {{post.content}}
-	      <td> {{post.signatures}} </td>
-	    </tr>
-	   </table>
-	 </div>
+          <h3>{{account.id}}'s Petitions</h3>
+          <table border=1px>
+            <tr>
+              <th> "Title" </th>
+              <th> "Body" </th>
+              <th> "Signatures" </th>
+            </tr>
+            <tr v-for="post in petitions">
+              <td> {{post.title}} </td>
+              <td> {{post.content}}
+              <td> {{post.signatures[0]}} </td>
+            <td> <button :id=post.address @click="signPetition(post)">Sign</button></td>
+            </tr>
+           </table>
+
+  </div>
     </div>
 
   </body>

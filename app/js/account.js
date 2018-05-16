@@ -570,9 +570,9 @@ class Account {
         this.contacts.push(newContact)
         this.contactsMap.set(contact.peerID, newContact)
       }
-      this.posts.push(...await this.getPosts(this.id))
       this.postsDB = await this.fs.getDir("/posts")
       await this.postsDB.load()
+      this.updatePosts()
       this.addContactFromURL()
     }
 
@@ -678,13 +678,20 @@ class Account {
 
     async makePost(title, post){
       this.postsDB.put(title, post)
-      this.posts.push(post)
+      this.updatePosts()
     }
 
-    async getPosts(peerID){
-      var parentDB = await this.orbitdb.keyvalue("/posts",{writers:[peerID],sync:true})
-      await parentDB.load()
-      return parentDB.all
+    async updatePosts(){
+      // var parentDB = await this.orbitdb.keyvalue("/posts",{writers:[peerID],sync:true})
+      // await parentDB.load()
+      var newPetitions = []
+      for (var i in this.postsDB.all){
+        var petition = Object.assign({}, this.postsDB.all[i])
+        petition.address = await hash(this.postsDB.address.toString() + this.postsDB.all[i].title)
+        newPetitions[i] = await Petition.create(this, petition)
+      }
+      this.posts.splice(0,this.posts.length)
+      this.posts.push(...newPetitions)
     }
 
     async signPetition(petition){
