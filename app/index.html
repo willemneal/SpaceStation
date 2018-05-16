@@ -87,7 +87,8 @@
               	    <tr v-for="post in contact.petitions">
               	      <td> {{post.title}} </td>
                       <td> {{post.content}}
-              	      <td> {{post.signatures}} </td>
+              	      <td> {{post.signatures[0]}} </td>
+                    <td> <button :id=post.address @click="signPetition(post)">Sign</button></td>
               	    </tr>
               	   </table>
               	 </div>

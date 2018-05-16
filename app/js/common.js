@@ -186,3 +186,9 @@ var serializeObject = function(obj) {
     }
     return pairs.join('&');
 }
+
+function objectForEach(object, fn) {
+    Object.keys(object).forEach(key => {
+        fn(key, object[key])
+    })
+}

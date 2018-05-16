@@ -259,16 +259,13 @@ class EncryptedChannel extends Channel{
 
   }
   read(res){
-    this.messages = this.database.iterator({limit:this.limit}).collect()
+    this.messages = super.read(res)
   }
 
   async write(message){
-    var hash = await this.database.add(message)
+    var hash = super.write(message)
   }
 
-  set limit(x){
-    this.limit = x
-  }
 }
 
 class Contact {
@@ -293,16 +290,26 @@ class Contact {
                                           this.publicKey)
       })()
     }
-    this.createPostsDatabase(account.orbitdb)
+    this.createPostsDatabase(account)
   }
 
-  async createPostsDatabase(orbitdb){
-    this.postsDB = await orbitdb.keyvalue("/posts",{write:[this.publicKey],sync:true})
+  async createPostsDatabase(account){
+    this.postsDB = await account.orbitdb.keyvalue("/posts",{write:[this.publicKey],sync:true})
     this.postsDB.events.on("replicated",()=>
-    this.petitions.push(...this.postsDB.all)
+      this.updatePetitions(account)
     )
     await this.postsDB.load()
 
+  }
+
+  async updatePetitions(account){
+    var newPetitions = []
+    for (var i in this.postsDB.all){
+      var petition = Object.assign({}, this.postsDB.all[i])
+      petition.address = await hash(this.postsDB.address.toString() + this.postsDB.all[i].title)
+      newPetitions[i] = await Petition.create(account, petition)
+    }
+    this.petitions.push(...newPetitions)
   }
 
   async sendFirstMessage(account,dbAddr){
@@ -329,6 +336,66 @@ class Contact {
     info.channel = Contact.getChannelAddress(account.id, info.peerID)
     return new Contact(account,info)
   }
+
+}
+
+class Petition {
+   constructor(account, petition){
+      this.petition = petition
+      this.account = account
+      this.signatures = [0]
+   }
+
+   async init(){
+     this.database = await this.account.orbitdb.keyvalue(this.petition.address, {sync:true, write:["*"]})
+     this.database.events.on("replicated", () => this.updateCounts())
+     this.database.events.on("replicate", () => this.updateCounts())
+     this.database.events.on("loaded", () => this.updateCounts())
+     this.database.load()
+   }
+
+   get title(){
+     return this.petition.title
+   }
+
+   get content(){
+     return this.petition.content
+   }
+
+   get addresss (){
+     return this.petition.address
+   }
+
+   async updateCounts(){
+     var signatures = this.database._index._index
+     var count = 0;
+     var publicKeys = Object.keys(signatures)
+     // for (var key in publicKeys){
+     //   var publicKey = publicKeys[key]
+     //   //if (this.account.verify(signatures[publicKey], this.account.publicKey, await hash(this.title + this.content))) {
+     //     count++;
+     //   }
+     // }
+     this.signatures.pop()
+     this.signatures.push(publicKeys.length)
+   }
+
+   async signPetition(){
+     var signature = this.database.get(this.account.publicKey)
+     if (!signature) {
+       var data = await this.account.sign(this.title + this.content)
+       await this.database.put(this.account.publicKey, data)
+     }
+     this.updateCounts()
+   }
+
+
+   static async create(account,petition){
+     var newPetition = new Petition(account, petition)
+     await newPetition.init()
+     return newPetition
+   }
+
 
 }
 
@@ -618,44 +685,12 @@ class Account {
       var parentDB = await this.orbitdb.keyvalue("/posts",{writers:[peerID],sync:true})
       await parentDB.load()
       return parentDB.all
+    }
 
+    async signPetition(petition){
+      petition.signPetition()
     }
 
 
-}
-
-
-
-
-class Petition {
-   constructor(account, name, desc){
-      this.account = account
-      this.name = name;
-      (async () => {
-      this.db = await account.orbitdb.keyvalue(name, {write:[]})
-      this.hash = await this.db.put("desc", desc)
-      this.publicDB = await account.orbitdb.keyvalue(name, {write:["*"]})
-      this.db.put("address", this.publicDB.address.toString())
-      }
-    ) ()
-   }
-
-   get desc(){
-     return this.db.get("desc")
-   }
-
-   get publicDB (){
-     return this.db.get("address")
-   }
-
-   sign(account) {
-     var signature = account.sign(this.desc)
-     var publicKey = account.publicKey
-     this.publicDB.put(publicKey, signature)
-   }
-
-   static createPetition(address){
-
-   }
 
 }

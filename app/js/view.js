@@ -81,6 +81,8 @@ const createApp = function (account) {
                     content:this.message,
                     signatures:0}
         this.account.makePost(this.postName,post)
+        this.postName=""
+        this.message=""
         // this.posts.push(post)
 
         console.log(post);
@@ -136,6 +138,10 @@ const createApp = function (account) {
                 console.error(e);
               });
         })(this.account)
+      },
+      signPetition: function(petition){
+        console.log("about to sign " + petition)
+        this.account.signPetition(petition)
       }
     }
 })
